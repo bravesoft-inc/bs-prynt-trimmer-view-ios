@@ -77,11 +77,20 @@ public class VideoCropView: UIView {
     ///   - animated: true if you want to animate the change. TODO: the animation glitches sometimes. See [Issue #3]
     public func setAspectRatio(_ aspectRatio: CGSize, animated: Bool) {
         self.aspectRatio = aspectRatio
+        var origin: CGPoint
         let ratio = aspectRatio.width / aspectRatio.height
-        let cropBoxWidth = ratio > 1 ? (bounds.width - 2 * margin) : (bounds.height - 2 * margin) * ratio
-        let cropBoxHeight = cropBoxWidth / ratio
-        let origin = CGPoint(x: (bounds.width - cropBoxWidth) / 2, y: (bounds.height - cropBoxHeight) / 2)
-        cropFrame = CGRect(origin: origin, size: CGSize(width: cropBoxWidth, height: cropBoxHeight))
+        
+        /// アスペクト比が1の場合は正方形のクロッピング画面を表示する
+        if ratio == 1 {
+            let cropBoxWidth = bounds.width - 2 * margin
+            origin = CGPoint(x: (bounds.width - cropBoxWidth) / 2, y: (bounds.height - cropBoxWidth) / 2)
+            cropFrame = CGRect(origin: origin, size: CGSize(width: cropBoxWidth, height: cropBoxWidth))
+        } else {
+            let cropBoxWidth = ratio > 1 ? (bounds.width - 2 * margin) : (bounds.height - 2 * margin) * ratio
+            let cropBoxHeight = cropBoxWidth / ratio
+            origin = CGPoint(x: (bounds.width - cropBoxWidth) / 2, y: (bounds.height - cropBoxHeight) / 2)
+            cropFrame = CGRect(origin: origin, size: CGSize(width: cropBoxWidth, height: cropBoxHeight))
+        }
 
         let edgeInsets = UIEdgeInsets(top: origin.y, left: origin.x, bottom: origin.y, right: origin.x)
         let duration: TimeInterval = animated ? 0.15 : 0.0
