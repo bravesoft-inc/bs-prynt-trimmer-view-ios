@@ -98,7 +98,7 @@ public protocol TrimmerViewDelegate: AnyObject {
         setupGestures()
         updateMainColor()
         updateHandleColor()
-//        registerOrientationChangedNotification()
+        registerOrientationChangedNotification()
     }
 
     override func constrainAssetPreview() {
