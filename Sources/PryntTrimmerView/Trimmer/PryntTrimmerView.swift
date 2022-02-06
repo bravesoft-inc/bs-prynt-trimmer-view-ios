@@ -65,6 +65,8 @@ public protocol TrimmerViewDelegate: AnyObject {
     private let positionBar = UIView()
     private let leftHandleKnob = UIView()
     private let rightHandleKnob = UIView()
+    private let leftHandleKnobCenter = UIView()
+    private let rightHandleKnobCenter = UIView()
     private let leftMaskView = UIView()
     private let rightMaskView = UIView()
 
@@ -76,7 +78,7 @@ public protocol TrimmerViewDelegate: AnyObject {
     private var rightConstraint: NSLayoutConstraint?
     private var positionConstraint: NSLayoutConstraint?
 
-    private let handleWidth: CGFloat = 15
+    private let handleWidth: CGFloat = 12
 
     /// The minimum duration allowed for the trimming. The handles won't pan further if the minimum duration is attained.
     public var minDuration: Double = 0.3
@@ -122,7 +124,7 @@ public protocol TrimmerViewDelegate: AnyObject {
 
     private func setupHandleView() {
         leftHandleView.isUserInteractionEnabled = true
-        leftHandleView.layer.cornerRadius = 2.0
+        leftHandleView.layer.cornerRadius = 4.0
         leftHandleView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(leftHandleView)
 
@@ -134,13 +136,21 @@ public protocol TrimmerViewDelegate: AnyObject {
         leftHandleKnob.translatesAutoresizingMaskIntoConstraints = false
         leftHandleView.addSubview(leftHandleKnob)
 
-        leftHandleKnob.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.5).isActive = true
-        leftHandleKnob.widthAnchor.constraint(equalToConstant: 2).isActive = true
+        leftHandleKnob.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.27).isActive = true
+        leftHandleKnob.widthAnchor.constraint(equalToConstant: 6).isActive = true
         leftHandleKnob.centerYAnchor.constraint(equalTo: leftHandleView.centerYAnchor).isActive = true
         leftHandleKnob.centerXAnchor.constraint(equalTo: leftHandleView.centerXAnchor).isActive = true
+        
+        leftHandleKnobCenter.translatesAutoresizingMaskIntoConstraints = false
+        leftHandleKnob.addSubview(leftHandleKnobCenter)
+        
+        leftHandleKnobCenter.heightAnchor.constraint(equalTo: leftHandleKnob.heightAnchor, multiplier: 1).isActive = true
+        leftHandleKnobCenter.widthAnchor.constraint(equalToConstant: 3).isActive = true
+        leftHandleKnobCenter.centerYAnchor.constraint(equalTo: leftHandleKnob.centerYAnchor).isActive = true
+        leftHandleKnobCenter.centerXAnchor.constraint(equalTo: leftHandleKnob.centerXAnchor).isActive = true
 
         rightHandleView.isUserInteractionEnabled = true
-        rightHandleView.layer.cornerRadius = 2.0
+        rightHandleView.layer.cornerRadius = 4.0
         rightHandleView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(rightHandleView)
 
@@ -152,16 +162,24 @@ public protocol TrimmerViewDelegate: AnyObject {
         rightHandleKnob.translatesAutoresizingMaskIntoConstraints = false
         rightHandleView.addSubview(rightHandleKnob)
 
-        rightHandleKnob.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.5).isActive = true
-        rightHandleKnob.widthAnchor.constraint(equalToConstant: 2).isActive = true
+        rightHandleKnob.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.27).isActive = true
+        rightHandleKnob.widthAnchor.constraint(equalToConstant: 6).isActive = true
         rightHandleKnob.centerYAnchor.constraint(equalTo: rightHandleView.centerYAnchor).isActive = true
         rightHandleKnob.centerXAnchor.constraint(equalTo: rightHandleView.centerXAnchor).isActive = true
+        
+        rightHandleKnobCenter.translatesAutoresizingMaskIntoConstraints = false
+        rightHandleKnob.addSubview(rightHandleKnobCenter)
+        
+        rightHandleKnobCenter.heightAnchor.constraint(equalTo: rightHandleKnob.heightAnchor, multiplier: 1).isActive = true
+        rightHandleKnobCenter.widthAnchor.constraint(equalToConstant: 3).isActive = true
+        rightHandleKnobCenter.centerYAnchor.constraint(equalTo: rightHandleKnob.centerYAnchor).isActive = true
+        rightHandleKnobCenter.centerXAnchor.constraint(equalTo: rightHandleKnob.centerXAnchor).isActive = true
     }
 
     private func setupMaskView() {
         leftMaskView.isUserInteractionEnabled = false
         leftMaskView.backgroundColor = .white
-        leftMaskView.alpha = 0.7
+        leftMaskView.alpha = 0.1
         leftMaskView.translatesAutoresizingMaskIntoConstraints = false
         insertSubview(leftMaskView, belowSubview: leftHandleView)
 
@@ -172,7 +190,7 @@ public protocol TrimmerViewDelegate: AnyObject {
 
         rightMaskView.isUserInteractionEnabled = false
         rightMaskView.backgroundColor = .white
-        rightMaskView.alpha = 0.7
+        rightMaskView.alpha = 0.1
         rightMaskView.translatesAutoresizingMaskIntoConstraints = false
         insertSubview(rightMaskView, belowSubview: rightHandleView)
 
@@ -209,6 +227,8 @@ public protocol TrimmerViewDelegate: AnyObject {
         trimView.layer.borderColor = mainColor.cgColor
         leftHandleView.backgroundColor = mainColor
         rightHandleView.backgroundColor = mainColor
+        leftHandleKnobCenter.backgroundColor = mainColor
+        rightHandleKnobCenter.backgroundColor = mainColor
     }
 
     private func updateHandleColor() {
