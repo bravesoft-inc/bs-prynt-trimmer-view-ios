@@ -98,6 +98,7 @@ public protocol TrimmerViewDelegate: AnyObject {
         setupGestures()
         updateMainColor()
         updateHandleColor()
+//        registerOrientationChangedNotification()
     }
 
     override func constrainAssetPreview() {
@@ -106,7 +107,20 @@ public protocol TrimmerViewDelegate: AnyObject {
         assetPreview.topAnchor.constraint(equalTo: topAnchor).isActive = true
         assetPreview.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     }
-
+    
+    private func registerOrientationChangedNotification() {
+        NotificationCenter.default.addObserver(
+                    self,
+                    selector: #selector(orientationChanged),
+                    name: UIDevice.orientationDidChangeNotification,
+                    object: nil)
+    }
+    
+    @objc
+    private func orientationChanged() {
+        regenerateThumbnails()
+    }
+    
     private func setupTrimmerView() {
         trimView.layer.borderWidth = 2.0
         trimView.layer.cornerRadius = 2.0
@@ -178,8 +192,8 @@ public protocol TrimmerViewDelegate: AnyObject {
 
     private func setupMaskView() {
         leftMaskView.isUserInteractionEnabled = false
-        leftMaskView.backgroundColor = .white
-        leftMaskView.alpha = 0.1
+        leftMaskView.backgroundColor = .black
+        leftMaskView.alpha = 0.6
         leftMaskView.translatesAutoresizingMaskIntoConstraints = false
         insertSubview(leftMaskView, belowSubview: leftHandleView)
 
@@ -190,7 +204,7 @@ public protocol TrimmerViewDelegate: AnyObject {
 
         rightMaskView.isUserInteractionEnabled = false
         rightMaskView.backgroundColor = .white
-        rightMaskView.alpha = 0.1
+        rightMaskView.alpha = 0.6
         rightMaskView.translatesAutoresizingMaskIntoConstraints = false
         insertSubview(rightMaskView, belowSubview: rightHandleView)
 
