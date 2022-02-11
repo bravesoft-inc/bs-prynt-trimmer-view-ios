@@ -329,6 +329,11 @@ public protocol TrimmerViewDelegate: AnyObject {
         let startPosition = leftHandleView.frame.origin.x + assetPreview.contentOffset.x
         return getTime(from: startPosition)
     }
+    
+    public func setStartTime(_ startTime: CMTime) {
+        guard let positionX = getPosition(from: startTime) else { return }
+        updateLeftConstraint(with: CGPoint(x: positionX, y: 0))
+    }
 
     /// The selected end time for the current asset.
     public var endTime: CMTime? {

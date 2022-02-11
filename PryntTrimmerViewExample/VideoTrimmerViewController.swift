@@ -22,6 +22,7 @@ class VideoTrimmerViewController: AssetSelectionViewController {
     @IBOutlet weak var playButton: UIButton!
     @IBOutlet weak var playerView: UIView!
     @IBOutlet weak var trimmerView: TrimmerView!
+    @IBOutlet weak var setStartTime: UIButton!
 
     var player: AVPlayer?
     var playbackTimeCheckerTimer: Timer?
@@ -54,6 +55,11 @@ class VideoTrimmerViewController: AssetSelectionViewController {
             player.pause()
             stopPlaybackTimeChecker()
         }
+    }
+    
+    @IBAction func setStartTime(_ sender: Any) {
+        let startTime = CMTime(seconds: 3, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        trimmerView.setStartTime(startTime)
     }
 
     override func loadAsset(_ asset: AVAsset) {
