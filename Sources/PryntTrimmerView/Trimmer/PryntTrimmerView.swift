@@ -333,6 +333,7 @@ public protocol TrimmerViewDelegate: AnyObject {
     public func setStartTime(_ startTime: CMTime) {
         guard let positionX = getPosition(from: startTime) else { return }
         updateLeftConstraint(with: CGPoint(x: positionX, y: 0))
+        delegate?.didChangePositionBar(startTime)
     }
 
     /// The selected end time for the current asset.
