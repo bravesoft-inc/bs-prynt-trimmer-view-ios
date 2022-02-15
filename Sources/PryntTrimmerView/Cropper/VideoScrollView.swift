@@ -70,6 +70,13 @@ class VideoScrollView: UIView {
     func setZoomScaleAndCenter(animated: Bool) {
         guard assetSize != CGSize.zero else { return }
 
+        // MEMO: scrollViewのサイズが0の場合、表示が崩れる
+        if scrollView.bounds.width == 0 && scrollView.bounds.height == 0 {
+            if let size = superview?.bounds {
+                scrollView.bounds = size
+            }
+        }
+        
         let scrollWidth = scrollView.bounds.width - scrollView.contentInset.left - scrollView.contentInset.right
         let scrollHeight = scrollView.bounds.height - scrollView.contentInset.top - scrollView.contentInset.bottom
         let scale = max(scrollWidth / assetSize.width, scrollHeight / assetSize.height)
