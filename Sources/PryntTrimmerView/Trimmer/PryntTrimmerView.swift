@@ -332,6 +332,7 @@ public protocol TrimmerViewDelegate: AnyObject {
     
     public func setStartTime(_ startTime: CMTime) {
         guard let positionX = getPosition(from: startTime) else { return }
+        currentLeftConstraint = 0
         updateLeftConstraint(with: CGPoint(x: positionX, y: 0))
         layoutIfNeeded()
         delegate?.didChangePositionBar(startTime)
@@ -345,6 +346,7 @@ public protocol TrimmerViewDelegate: AnyObject {
     
     public func setEndTime(_ endTime: CMTime) {
         guard let positionX = getPosition(from: endTime) else { return }
+        currentRightConstraint = 0
         let maxConstraint = 2 * handleWidth - frame.width
         updateRightConstraint(with: CGPoint(x: positionX + maxConstraint, y: 0))
         layoutIfNeeded()
