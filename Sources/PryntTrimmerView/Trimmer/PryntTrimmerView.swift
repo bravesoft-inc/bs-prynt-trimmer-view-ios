@@ -82,6 +82,11 @@ public protocol TrimmerViewDelegate: AnyObject {
 
     /// The minimum duration allowed for the trimming. The handles won't pan further if the minimum duration is attained.
     public var minDuration: Double = 0.3
+    
+    private var isLandscape: Bool = false
+    
+    private var tmpStartTime: CMTime = .zero
+    private var tmpEndTime: CMTime = .zero
 
     // MARK: - View & constraints configurations
 
@@ -118,7 +123,20 @@ public protocol TrimmerViewDelegate: AnyObject {
     
     @objc
     private func orientationChanged() {
-        regenerateThumbnails()
+        var orientation: UIInterfaceOrientation = .unknown
+        if #available(iOS 13.0, *) {
+            orientation = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.windowScene?.interfaceOrientation ?? .portrait
+        } else {
+            orientation = UIApplication.shared.statusBarOrientation
+        }
+        
+        if isLandscape != orientation.isLandscape {
+            regenerateThumbnails()
+            setStartTime(tmpStartTime)
+            setEndTime(tmpEndTime)
+        }
+        
+        isLandscape = orientation.isLandscape
     }
     
     private func setupTrimmerView() {
@@ -273,8 +291,10 @@ public protocol TrimmerViewDelegate: AnyObject {
             }
             layoutIfNeeded()
             if let startTime = startTime, isLeftGesture {
+                tmpStartTime = startTime
                 seek(to: startTime)
             } else if let endTime = endTime {
+                tmpEndTime = endTime
                 seek(to: endTime)
             }
             updateSelectedTime(stoppedMoving: false)
@@ -301,6 +321,8 @@ public protocol TrimmerViewDelegate: AnyObject {
 
     override func assetDidChange(newAsset: AVAsset?) {
         super.assetDidChange(newAsset: newAsset)
+        self.tmpStartTime = .zero
+        self.tmpEndTime = newAsset?.duration ?? .zero
         resetHandleViewPosition()
     }
 
