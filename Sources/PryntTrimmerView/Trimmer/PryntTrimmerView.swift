@@ -105,7 +105,15 @@ public protocol TrimmerViewDelegate: AnyObject {
         updateHandleColor()
         registerOrientationChangedNotification()
     }
-
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+    
+    public override func willMove(toSuperview newSuperview: UIView?) {
+        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+    
     override func constrainAssetPreview() {
         assetPreview.leftAnchor.constraint(equalTo: leftAnchor, constant: handleWidth).isActive = true
         assetPreview.rightAnchor.constraint(equalTo: rightAnchor, constant: -handleWidth).isActive = true
@@ -123,20 +131,9 @@ public protocol TrimmerViewDelegate: AnyObject {
     
     @objc
     private func orientationChanged() {
-        var orientation: UIInterfaceOrientation = .unknown
-        if #available(iOS 13.0, *) {
-            orientation = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.windowScene?.interfaceOrientation ?? .portrait
-        } else {
-            orientation = UIApplication.shared.statusBarOrientation
-        }
-        
-        if isLandscape != orientation.isLandscape {
-            regenerateThumbnails()
-            setStartTime(tmpStartTime)
-            setEndTime(tmpEndTime)
-        }
-        
-        isLandscape = orientation.isLandscape
+        regenerateThumbnails()
+        setStartTime(tmpStartTime)
+        setEndTime(tmpEndTime)
     }
     
     private func setupTrimmerView() {
