@@ -131,9 +131,20 @@ public protocol TrimmerViewDelegate: AnyObject {
     
     @objc
     private func orientationChanged() {
-        regenerateThumbnails()
-        setStartTime(tmpStartTime)
-        setEndTime(tmpEndTime)
+        var orientation: UIInterfaceOrientation = .unknown
+        if #available(iOS 13.0, *) {
+            orientation = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.windowScene?.interfaceOrientation ?? .portrait
+        } else {
+            orientation = UIApplication.shared.statusBarOrientation
+        }
+        
+        if isLandscape != orientation.isLandscape {
+            regenerateThumbnails()
+            setStartTime(tmpStartTime)
+            setEndTime(tmpEndTime)
+        }
+        
+        isLandscape = orientation.isLandscape
     }
     
     private func setupTrimmerView() {
