@@ -106,14 +106,6 @@ public protocol TrimmerViewDelegate: AnyObject {
         registerOrientationChangedNotification()
     }
     
-    deinit {
-        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
-    }
-    
-    public override func willMove(toSuperview newSuperview: UIView?) {
-        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
-    }
-    
     override func constrainAssetPreview() {
         assetPreview.leftAnchor.constraint(equalTo: leftAnchor, constant: handleWidth).isActive = true
         assetPreview.rightAnchor.constraint(equalTo: rightAnchor, constant: -handleWidth).isActive = true
@@ -122,6 +114,8 @@ public protocol TrimmerViewDelegate: AnyObject {
     }
     
     private func registerOrientationChangedNotification() {
+        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
+        
         NotificationCenter.default.addObserver(
                     self,
                     selector: #selector(orientationChanged),
