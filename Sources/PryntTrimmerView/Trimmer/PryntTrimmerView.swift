@@ -359,7 +359,6 @@ public protocol TrimmerViewDelegate: AnyObject {
         currentLeftConstraint = 0
         updateLeftConstraint(with: CGPoint(x: positionX, y: 0))
         layoutIfNeeded()
-        delegate?.didChangePositionBar(startTime)
     }
 
     /// The selected end time for the current asset.
@@ -374,7 +373,6 @@ public protocol TrimmerViewDelegate: AnyObject {
         let maxConstraint = 2 * handleWidth - frame.width
         updateRightConstraint(with: CGPoint(x: positionX + maxConstraint, y: 0))
         layoutIfNeeded()
-        delegate?.didChangePositionBar(endTime)
     }
 
     private func updateSelectedTime(stoppedMoving: Bool) {
