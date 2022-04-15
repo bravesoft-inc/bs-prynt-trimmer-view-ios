@@ -30,6 +30,12 @@ public class VideoCropView: UIView {
             }
         }
     }
+    
+    public var maskBackgroundColor: UIColor = UIColor.white {
+        didSet {
+            cropMaskView.cropBoxView.backgroundColor = maskBackgroundColor
+        }
+    }
 
     var cropFrame = CGRect.zero
     
