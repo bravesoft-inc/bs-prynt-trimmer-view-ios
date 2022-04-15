@@ -61,6 +61,10 @@ class CropMaskView: UIView {
         framePath.lineWidth = lineWidth
         frameLayer.path = framePath.cgPath
         
+        for gridView in subviews where gridView is GridView {
+            gridView.removeFromSuperview()
+        }
+        
         let gridView = GridView(frame: cropFrame)
         gridView.backgroundColor = .clear
         addSubview(gridView)
