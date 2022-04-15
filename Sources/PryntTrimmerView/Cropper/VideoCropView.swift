@@ -61,6 +61,8 @@ public class VideoCropView: UIView {
         videoScrollView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
         videoScrollView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
         videoScrollView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        
+        videoScrollView.delegate = self
 
         cropMaskView.isUserInteractionEnabled = false
         cropMaskView.translatesAutoresizingMaskIntoConstraints = false
