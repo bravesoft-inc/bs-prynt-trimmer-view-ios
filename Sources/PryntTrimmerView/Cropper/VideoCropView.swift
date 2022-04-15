@@ -9,7 +9,7 @@
 import AVFoundation
 import UIKit
 
-protocol VideoCropViewDelegate: AnyObject {
+public protocol VideoCropViewDelegate: AnyObject {
     func changePostion(cropFrame: CGRect)
 }
 
@@ -33,7 +33,7 @@ public class VideoCropView: UIView {
 
     var cropFrame = CGRect.zero
     
-    weak var delegate: VideoCropViewDelegate?
+    public weak var delegate: VideoCropViewDelegate?
 
     /// The current aspect ratio of the crop view.
     public private(set) var aspectRatio = CGSize(width: 1, height: 1)
