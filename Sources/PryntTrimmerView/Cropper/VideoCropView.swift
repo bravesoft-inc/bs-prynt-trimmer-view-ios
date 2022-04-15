@@ -9,6 +9,10 @@
 import AVFoundation
 import UIKit
 
+protocol VideoCropViewDelegate: AnyObject {
+    func changePostion(cropFrame: CGRect)
+}
+
 private let margin: CGFloat = 16
 
 /// A view to preview a video inside an `AVPlayer`, with a scroll view to be able to select a specific area of the video.
@@ -28,6 +32,8 @@ public class VideoCropView: UIView {
     }
 
     var cropFrame = CGRect.zero
+    
+    weak var delegate: VideoCropViewDelegate?
 
     /// The current aspect ratio of the crop view.
     public private(set) var aspectRatio = CGSize(width: 1, height: 1)
@@ -124,5 +130,12 @@ public class VideoCropView: UIView {
         frame.size.height = ceil(cropBoxFrame.size.height * (imageSize.height / contentSize.height))
         frame.size.height = min(imageSize.height, frame.size.height)
         return frame
+    }
+}
+
+extension VideoCropView: VideoScrollViewDelegate {
+    func changePosition() {
+        let frame = getImageCropFrame()
+        delegate?.changePostion(cropFrame: frame)
     }
 }
