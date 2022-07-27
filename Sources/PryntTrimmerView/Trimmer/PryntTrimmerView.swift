@@ -471,6 +471,7 @@ public protocol TrimmerViewDelegate: AnyObject {
         guard let view = gestureRecognizer.view, let superView = gestureRecognizer.view?.superview else { return }
         let isLeftGesture = view == leftHandleView
         let isRightGesture = view == rightHandleView
+        let isPositionBarGesture = view == positionBar
         
         switch gestureRecognizer.state {
         case .began:
@@ -507,15 +508,13 @@ public protocol TrimmerViewDelegate: AnyObject {
                 tmpCurrentTime = currentPlayTime
                 timeLabelView.setTime(currentPlayTime)
             }
-            updateSelectedTime(stoppedMoving: false)
+            updateSelectedTime(stoppedMoving: isPositionBarGesture)
 
         case .cancelled, .ended, .failed:
-            if isLeftGesture || isRightGesture {
-                updateSelectedTime(stoppedMoving: true)
-            } else {
+            updateSelectedTime(stoppedMoving: true)
+            if isPositionBarGesture {
                 timeLabelView.isHidden = true
             }
-            
         default: break
         }
     }
