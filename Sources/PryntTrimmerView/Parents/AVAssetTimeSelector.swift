@@ -61,7 +61,7 @@ public class AVAssetTimeSelector: UIView, UIScrollViewDelegate {
         assetPreview.translatesAutoresizingMaskIntoConstraints = false
         assetPreview.delegate = self
         assetPreview.viewDelegate = self
-        addSubview(assetPreview)
+        insertSubview(assetPreview, at: 0)
     }
 
     func constrainAssetPreview() {

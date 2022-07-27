@@ -30,8 +30,44 @@ class VideoTrimmerViewController: AssetSelectionViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        defaultTrimmerView()
+//        noTrimmerView()
+    }
+    
+    private func defaultTrimmerView() {
         trimmerView.handleColor = UIColor.white
         trimmerView.mainColor = UIColor.darkGray
+        trimmerView.handleWidth = 100
+    }
+    
+    private func noTrimmerView() {
+        view.backgroundColor = .systemPink
+        
+        // trimerViewのスタイル設定
+        trimmerView.borderWidth = 0
+        trimmerView.cornerRadius = 0
+        trimmerView.mainColor = UIColor.white
+        trimmerView.maskColor = .clear
+        
+        // ハンドラ（時間指定するための両側ビュー）設定
+        trimmerView.handleWidth = 0
+        trimmerView.handleColor = UIColor.white
+        trimmerView.isHiddenHandle = true
+        
+        // アセットプレビュー（スナップショット）のスタイル設定
+        trimmerView.assetPreviewMargin = 10.0
+        trimmerView.assetPreviewBorderWidth = 4.0
+        trimmerView.assetPreviewCornerRadius = 4.0
+        
+        //ポジションバーの設定
+        trimmerView.positionBarColor = .clear
+        trimmerView.positionBarWidth = 24.0
+        trimmerView.customPositionBar = customPositionBar
+        trimmerView.isMovePositionBar = true
+        
+        // タイムラベル（ポジションバーの上部に表示される）の設定
+        trimmerView.isShowTimeLabel = true
     }
     
     deinit {
@@ -42,6 +78,7 @@ class VideoTrimmerViewController: AssetSelectionViewController {
 
     @IBAction func selectAsset(_ sender: Any) {
         loadAssetRandomly()
+        trimmerView.resetAssetPreviews()
     }
 
     @IBAction func play(_ sender: Any) {
@@ -119,6 +156,65 @@ class VideoTrimmerViewController: AssetSelectionViewController {
             player.seek(to: startTime, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
             trimmerView.seek(to: startTime)
         }
+    }
+}
+
+extension VideoTrimmerViewController {
+    var customLeftHandleView: UIView {
+        let view = UIView(frame: .init(origin: .zero, size: .init(width: 25, height: 10)))
+        view.backgroundColor = .green
+        return view
+    }
+    
+    var customRightHandleView: UIView {
+        let view = UIView(frame: .init(origin: .zero, size: .init(width: 25, height: 10)))
+        view.backgroundColor = .cyan
+        return view
+    }
+    
+    var customPositionBar: UIView {
+        let view = customPositionBarView
+        view.addSubview(customPositionBarKnobView)
+        return view
+    }
+    
+    var customPositionBarView: UIView {
+        let containerHeight: CGFloat = 60.0
+        let containerY: CGFloat = (containerHeight - trimmerView.frame.height) / 2
+        let containerView = UIView(frame: .init(origin: .init(x: 0, y: -containerY), size: .init(width: trimmerView.positionBarWidth, height: containerHeight)))
+        containerView.backgroundColor = .clear
+        
+        let barWidth: CGFloat = 4.0
+        let barView = UIView(frame: .init(origin: .init(x: (trimmerView.positionBarWidth - barWidth) / 2, y: 0), size: .init(width: barWidth, height: containerHeight)))
+        barView.backgroundColor = UIColor(red: (31 / 255), green: (255 / 255), blue: (242 / 255), alpha: 1.0)
+        barView.layer.shadowOffset = CGSize(width: 0.0, height: 0.0)
+        barView.layer.shadowColor = UIColor.black.cgColor
+        barView.layer.shadowOpacity = 0.5
+        barView.layer.shadowRadius = 4.0
+        barView.layer.cornerRadius = 2.0
+        
+        containerView.addSubview(barView)
+        
+        return containerView
+    }
+    
+    var customPositionBarKnobView: UIView {
+        let knobSize: CGFloat = 24
+        let knobX: CGFloat = (customPositionBarView.frame.width - knobSize) / 2
+        let knobY: CGFloat = (customPositionBarView.frame.height - knobSize) / 2
+        
+        let knobPoint = CGPoint(x: knobX, y: knobY)
+        
+        let knobView = UIView(frame: .init(origin: knobPoint, size: .init(width: knobSize, height: knobSize)))
+        knobView.backgroundColor = UIColor(red: (0 / 255), green: (204 / 255), blue: (192 / 255), alpha: 1.0)
+        knobView.layer.cornerRadius = knobSize / 2
+        knobView.layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
+        knobView.layer.shadowColor = UIColor.black.cgColor
+        knobView.layer.shadowOpacity = 0.16
+        knobView.layer.shadowRadius = 4
+        knobView.layer.borderWidth = 3.0
+        knobView.layer.borderColor = UIColor.white.cgColor
+        return knobView
     }
 }
 

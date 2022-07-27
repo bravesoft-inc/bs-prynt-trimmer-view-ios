@@ -21,7 +21,87 @@ public protocol TrimmerViewDelegate: AnyObject {
 // range
 @IBDesignable public class TrimmerView: AVAssetTimeSelector {
     // MARK: - Properties
-
+    @IBInspectable public var borderWidth: CGFloat = 2 {
+        didSet {
+            setupBorderWidth()
+        }
+    }
+    
+    @IBInspectable public var cornerRadius: CGFloat = 2 {
+        didSet {
+            setupCornerRadius()
+        }
+    }
+    
+    @IBInspectable public var handleWidth: CGFloat = 16 {
+        didSet {
+            setupSubviews()
+        }
+    }
+    
+    @IBInspectable public var positionBarWidth: CGFloat = 4 {
+        didSet {
+            setupPositionBar()
+        }
+    }
+    
+    @IBInspectable public var isHiddenHandle: Bool = false {
+        didSet {
+            updateHandleHidden()
+            setupGestures()
+        }
+    }
+    
+    @IBInspectable public var isMovePositionBar: Bool = false {
+        didSet {
+            setupPositionBar()
+            setupGestures()
+        }
+    }
+    
+    @IBInspectable public var isShowTimeLabel: Bool = false {
+        didSet {
+            setupPositionBar()
+            setupGestures()
+        }
+    }
+    
+    @IBInspectable public var assetPreviewMargin: CGFloat = 0 {
+        didSet {
+            resetAssetPreviews()
+        }
+    }
+    
+    @IBInspectable public var assetPreviewBorderWidth: CGFloat = 0 {
+        didSet {
+            setupAssetPreviewBorderWidth()
+        }
+    }
+    
+    @IBInspectable public var assetPreviewCornerRadius: CGFloat = 0 {
+        didSet {
+            setupAssetPreviewCornerRadius()
+        }
+    }
+    
+    // MARK: View Customization
+    
+    var customLeftHandleView: UIView? {
+        didSet {
+            setupLeftHandleView()
+        }
+    }
+    var customRightHandleView: UIView? {
+        didSet {
+            setupRightHandleView()
+        }
+    }
+    var customPositionBar: UIView? {
+        didSet {
+            setupPositionBar()
+        }
+    }
+    
     // MARK: Color Customization
 
     /// The color of the main border of the view
@@ -54,7 +134,6 @@ public protocol TrimmerViewDelegate: AnyObject {
     }
 
     // MARK: Interface
-
     public weak var delegate: TrimmerViewDelegate?
 
     // MARK: Subviews
@@ -62,6 +141,8 @@ public protocol TrimmerViewDelegate: AnyObject {
     private let trimView = UIView()
     private let leftHandleView = HandlerView()
     private let rightHandleView = HandlerView()
+    private let timeLabelView = TimeLabelView()
+    private let timeLabelViewSize = CGSize(width: 64.0, height: 24.0)
     private let positionBar = UIView()
     private let leftHandleKnob = UIView()
     private let rightHandleKnob = UIView()
@@ -74,11 +155,11 @@ public protocol TrimmerViewDelegate: AnyObject {
 
     private var currentLeftConstraint: CGFloat = 0
     private var currentRightConstraint: CGFloat = 0
+    private var currentPositionConstraint: CGFloat = 0
     private var leftConstraint: NSLayoutConstraint?
     private var rightConstraint: NSLayoutConstraint?
     private var positionConstraint: NSLayoutConstraint?
-
-    private let handleWidth: CGFloat = 12
+    private var timeLabelConstraint: NSLayoutConstraint?
 
     /// The minimum duration allowed for the trimming. The handles won't pan further if the minimum duration is attained.
     public var minDuration: Double = 0.3
@@ -87,13 +168,18 @@ public protocol TrimmerViewDelegate: AnyObject {
     
     private var tmpStartTime: CMTime = .zero
     private var tmpEndTime: CMTime = .zero
+    private var tmpCurrentTime: CMTime = .zero
 
     // MARK: - View & constraints configurations
 
     override func setupSubviews() {
         super.setupSubviews()
-        layer.cornerRadius = 2
-        layer.masksToBounds = true
+        
+        setupBorderWidth()
+        setupCornerRadius()
+        setupAssetPreviewBorderWidth()
+        setupAssetPreviewCornerRadius()
+        
         backgroundColor = UIColor.clear
         layer.zPosition = 1
         setupTrimmerView()
@@ -104,11 +190,63 @@ public protocol TrimmerViewDelegate: AnyObject {
         updateMainColor()
         updateHandleColor()
         registerOrientationChangedNotification()
+        
+        setupTimeLabelView()
+    }
+    
+    func setupTimeLabelView() {
+        timeLabelView.removeFromSuperview()
+        timeLabelView.isHidden = true
+        timeLabelView.isUserInteractionEnabled = false
+        timeLabelView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(timeLabelView)
+        
+        timeLabelView.widthAnchor.constraint(equalToConstant: timeLabelViewSize.width).isActive = true
+        timeLabelView.heightAnchor.constraint(equalToConstant: timeLabelViewSize.height).isActive = true
+        timeLabelView.topAnchor.constraint(equalTo: trimView.topAnchor, constant: -timeLabelViewSize.height).isActive = true
+        
+        timeLabelConstraint = timeLabelView.leftAnchor.constraint(equalTo: leftHandleView.rightAnchor, constant: -timeLabelConstant())
+        timeLabelConstraint?.isActive = true
+    }
+    
+    private func timeLabelConstant() -> CGFloat {
+        (timeLabelViewSize.width - positionBarWidth) / 2
+    }
+    
+    func resetAssetPreviews() {
+        assetPreview.removeFromSuperview()
+        assetPreview.removeAllConstraints()
+        setupAssetPreview()
+        constrainAssetPreview()
+        setupAssetPreviewBorderWidth()
+        setupAssetPreviewCornerRadius()
+        regenerateThumbnails()
+    }
+    
+    
+    private func setupBorderWidth() {
+        trimView.layer.borderWidth = self.borderWidth
+    }
+    
+    private func setupCornerRadius() {
+        // setup TrimmerView
+        layer.cornerRadius = self.cornerRadius
+        
+        // setup TrimView
+        trimView.layer.cornerRadius = self.cornerRadius
+    }
+    
+    private func setupAssetPreviewBorderWidth() {
+        assetPreview.layer.borderWidth = self.assetPreviewBorderWidth
+    }
+    
+    private func setupAssetPreviewCornerRadius() {
+        assetPreview.layer.cornerRadius = self.assetPreviewCornerRadius
     }
     
     override func constrainAssetPreview() {
-        assetPreview.leftAnchor.constraint(equalTo: leftAnchor, constant: handleWidth).isActive = true
-        assetPreview.rightAnchor.constraint(equalTo: rightAnchor, constant: -handleWidth).isActive = true
+        assetPreview.leftAnchor.constraint(equalTo: leftAnchor, constant: handleWidth + assetPreviewMargin).isActive = true
+        assetPreview.rightAnchor.constraint(equalTo: rightAnchor, constant: -handleWidth - assetPreviewMargin).isActive = true
         assetPreview.topAnchor.constraint(equalTo: topAnchor).isActive = true
         assetPreview.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     }
@@ -142,8 +280,7 @@ public protocol TrimmerViewDelegate: AnyObject {
     }
     
     private func setupTrimmerView() {
-        trimView.layer.borderWidth = 2.0
-        trimView.layer.cornerRadius = 2.0
+        trimView.removeFromSuperview()
         trimView.translatesAutoresizingMaskIntoConstraints = false
         trimView.isUserInteractionEnabled = false
         addSubview(trimView)
@@ -157,7 +294,14 @@ public protocol TrimmerViewDelegate: AnyObject {
     }
 
     private func setupHandleView() {
-        leftHandleView.isUserInteractionEnabled = true
+        setupLeftHandleView()
+        setupRightHandleView()
+    }
+    
+    private func setupLeftHandleView() {
+        leftHandleView.removeFromSuperview()
+        leftHandleView.removeAllConstraints()
+        leftHandleView.isUserInteractionEnabled = !isHiddenHandle
         leftHandleView.layer.cornerRadius = 4.0
         leftHandleView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(leftHandleView)
@@ -166,24 +310,38 @@ public protocol TrimmerViewDelegate: AnyObject {
         leftHandleView.widthAnchor.constraint(equalToConstant: handleWidth).isActive = true
         leftHandleView.leftAnchor.constraint(equalTo: trimView.leftAnchor).isActive = true
         leftHandleView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-
-        leftHandleKnob.translatesAutoresizingMaskIntoConstraints = false
-        leftHandleView.addSubview(leftHandleKnob)
-
-        leftHandleKnob.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.27).isActive = true
-        leftHandleKnob.widthAnchor.constraint(equalToConstant: 6).isActive = true
-        leftHandleKnob.centerYAnchor.constraint(equalTo: leftHandleView.centerYAnchor).isActive = true
-        leftHandleKnob.centerXAnchor.constraint(equalTo: leftHandleView.centerXAnchor).isActive = true
         
-        leftHandleKnobCenter.translatesAutoresizingMaskIntoConstraints = false
-        leftHandleKnob.addSubview(leftHandleKnobCenter)
-        
-        leftHandleKnobCenter.heightAnchor.constraint(equalTo: leftHandleKnob.heightAnchor, multiplier: 1).isActive = true
-        leftHandleKnobCenter.widthAnchor.constraint(equalToConstant: 3).isActive = true
-        leftHandleKnobCenter.centerYAnchor.constraint(equalTo: leftHandleKnob.centerYAnchor).isActive = true
-        leftHandleKnobCenter.centerXAnchor.constraint(equalTo: leftHandleKnob.centerXAnchor).isActive = true
+        if let customLeftHandleView = customLeftHandleView {
+            customLeftHandleView.removeFromSuperview()
+            leftHandleView.addSubview(customLeftHandleView)
+        } else {
+            leftHandleKnobCenter.removeFromSuperview()
+            leftHandleKnobCenter.removeAllConstraints()
+            leftHandleKnob.removeFromSuperview()
+            leftHandleKnob.removeAllConstraints()
+            
+            leftHandleKnob.translatesAutoresizingMaskIntoConstraints = false
+            leftHandleView.addSubview(leftHandleKnob)
 
-        rightHandleView.isUserInteractionEnabled = true
+            leftHandleKnob.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.27).isActive = true
+            leftHandleKnob.widthAnchor.constraint(equalToConstant: 6).isActive = true
+            leftHandleKnob.centerYAnchor.constraint(equalTo: leftHandleView.centerYAnchor).isActive = true
+            leftHandleKnob.centerXAnchor.constraint(equalTo: leftHandleView.centerXAnchor).isActive = true
+            
+            leftHandleKnobCenter.translatesAutoresizingMaskIntoConstraints = false
+            leftHandleKnob.addSubview(leftHandleKnobCenter)
+            
+            leftHandleKnobCenter.heightAnchor.constraint(equalTo: leftHandleKnob.heightAnchor, multiplier: 1).isActive = true
+            leftHandleKnobCenter.widthAnchor.constraint(equalToConstant: 3).isActive = true
+            leftHandleKnobCenter.centerYAnchor.constraint(equalTo: leftHandleKnob.centerYAnchor).isActive = true
+            leftHandleKnobCenter.centerXAnchor.constraint(equalTo: leftHandleKnob.centerXAnchor).isActive = true
+        }
+    }
+    
+    private func setupRightHandleView() {
+        rightHandleView.removeFromSuperview()
+        rightHandleView.removeAllConstraints()
+        rightHandleView.isUserInteractionEnabled = !isHiddenHandle
         rightHandleView.layer.cornerRadius = 4.0
         rightHandleView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(rightHandleView)
@@ -192,25 +350,37 @@ public protocol TrimmerViewDelegate: AnyObject {
         rightHandleView.widthAnchor.constraint(equalToConstant: handleWidth).isActive = true
         rightHandleView.rightAnchor.constraint(equalTo: trimView.rightAnchor).isActive = true
         rightHandleView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-
-        rightHandleKnob.translatesAutoresizingMaskIntoConstraints = false
-        rightHandleView.addSubview(rightHandleKnob)
-
-        rightHandleKnob.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.27).isActive = true
-        rightHandleKnob.widthAnchor.constraint(equalToConstant: 6).isActive = true
-        rightHandleKnob.centerYAnchor.constraint(equalTo: rightHandleView.centerYAnchor).isActive = true
-        rightHandleKnob.centerXAnchor.constraint(equalTo: rightHandleView.centerXAnchor).isActive = true
         
-        rightHandleKnobCenter.translatesAutoresizingMaskIntoConstraints = false
-        rightHandleKnob.addSubview(rightHandleKnobCenter)
-        
-        rightHandleKnobCenter.heightAnchor.constraint(equalTo: rightHandleKnob.heightAnchor, multiplier: 1).isActive = true
-        rightHandleKnobCenter.widthAnchor.constraint(equalToConstant: 3).isActive = true
-        rightHandleKnobCenter.centerYAnchor.constraint(equalTo: rightHandleKnob.centerYAnchor).isActive = true
-        rightHandleKnobCenter.centerXAnchor.constraint(equalTo: rightHandleKnob.centerXAnchor).isActive = true
+        if let customRightHandleView = customRightHandleView {
+            customRightHandleView.removeFromSuperview()
+            rightHandleView.addSubview(customRightHandleView)
+        } else {
+            rightHandleKnobCenter.removeFromSuperview()
+            rightHandleKnobCenter.removeAllConstraints()
+            rightHandleKnob.removeFromSuperview()
+            rightHandleKnob.removeAllConstraints()
+            
+            rightHandleKnob.translatesAutoresizingMaskIntoConstraints = false
+            rightHandleView.addSubview(rightHandleKnob)
+
+            rightHandleKnob.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.27).isActive = true
+            rightHandleKnob.widthAnchor.constraint(equalToConstant: 6).isActive = true
+            rightHandleKnob.centerYAnchor.constraint(equalTo: rightHandleView.centerYAnchor).isActive = true
+            rightHandleKnob.centerXAnchor.constraint(equalTo: rightHandleView.centerXAnchor).isActive = true
+            
+            rightHandleKnobCenter.translatesAutoresizingMaskIntoConstraints = false
+            rightHandleKnob.addSubview(rightHandleKnobCenter)
+            
+            rightHandleKnobCenter.heightAnchor.constraint(equalTo: rightHandleKnob.heightAnchor, multiplier: 1).isActive = true
+            rightHandleKnobCenter.widthAnchor.constraint(equalToConstant: 3).isActive = true
+            rightHandleKnobCenter.centerYAnchor.constraint(equalTo: rightHandleKnob.centerYAnchor).isActive = true
+            rightHandleKnobCenter.centerXAnchor.constraint(equalTo: rightHandleKnob.centerXAnchor).isActive = true
+        }
     }
-
+    
     private func setupMaskView() {
+        leftMaskView.removeFromSuperview()
+        leftMaskView.removeAllConstraints()
         leftMaskView.isUserInteractionEnabled = false
         leftMaskView.backgroundColor = .black
         leftMaskView.alpha = 0.6
@@ -222,6 +392,8 @@ public protocol TrimmerViewDelegate: AnyObject {
         leftMaskView.topAnchor.constraint(equalTo: topAnchor).isActive = true
         leftMaskView.rightAnchor.constraint(equalTo: leftHandleView.centerXAnchor).isActive = true
 
+        rightMaskView.removeFromSuperview()
+        rightMaskView.removeAllConstraints()
         rightMaskView.isUserInteractionEnabled = false
         rightMaskView.backgroundColor = .white
         rightMaskView.alpha = 0.6
@@ -235,30 +407,49 @@ public protocol TrimmerViewDelegate: AnyObject {
     }
 
     private func setupPositionBar() {
-        positionBar.frame = CGRect(x: 0, y: 0, width: 3, height: frame.height)
+        positionBar.removeFromSuperview()
+        positionBar.removeAllConstraints()
+        positionBar.frame = CGRect(x: 0, y: 0, width: positionBarWidth, height: frame.height)
         positionBar.backgroundColor = positionBarColor
         positionBar.center = CGPoint(x: leftHandleView.frame.maxX, y: center.y)
         positionBar.layer.cornerRadius = 1
         positionBar.translatesAutoresizingMaskIntoConstraints = false
-        positionBar.isUserInteractionEnabled = false
+        positionBar.isUserInteractionEnabled = isMovePositionBar
         addSubview(positionBar)
 
         positionBar.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        positionBar.widthAnchor.constraint(equalToConstant: 3).isActive = true
+        positionBar.widthAnchor.constraint(equalToConstant: positionBarWidth).isActive = true
         positionBar.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
+        
         positionConstraint = positionBar.leftAnchor.constraint(equalTo: leftHandleView.rightAnchor, constant: 0)
         positionConstraint?.isActive = true
+        
+        if let customPositionBar = customPositionBar {
+            customPositionBar.removeFromSuperview()
+            positionBar.addSubview(customPositionBar)
+        }
     }
 
     private func setupGestures() {
-        let leftPanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(TrimmerView.handlePanGesture))
-        leftHandleView.addGestureRecognizer(leftPanGestureRecognizer)
-        let rightPanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(TrimmerView.handlePanGesture))
-        rightHandleView.addGestureRecognizer(rightPanGestureRecognizer)
-    }
+        leftHandleView.gestureRecognizers?.removeAll()
+        rightHandleView.gestureRecognizers?.removeAll()
+        positionBar.gestureRecognizers?.removeAll()
 
+        if !isHiddenHandle {
+            let leftPanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(TrimmerView.handlePanGesture))
+            leftHandleView.addGestureRecognizer(leftPanGestureRecognizer)
+            let rightPanGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(TrimmerView.handlePanGesture))
+            rightHandleView.addGestureRecognizer(rightPanGestureRecognizer)
+        }
+        
+        if isMovePositionBar {
+            let positionBarGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(TrimmerView.handlePanGesture))
+            positionBar.addGestureRecognizer(positionBarGestureRecognizer)
+        }
+    }
     private func updateMainColor() {
         trimView.layer.borderColor = mainColor.cgColor
+        assetPreview.layer.borderColor = mainColor.cgColor
         leftHandleView.backgroundColor = mainColor
         rightHandleView.backgroundColor = mainColor
         leftHandleKnobCenter.backgroundColor = mainColor
@@ -270,17 +461,29 @@ public protocol TrimmerViewDelegate: AnyObject {
         rightHandleKnob.backgroundColor = handleColor
     }
 
+    private func updateHandleHidden() {
+        leftHandleView.isHidden = isHiddenHandle
+        rightHandleView.isHidden = isHiddenHandle
+    }
+    
     // MARK: - Trim Gestures
-
     @objc func handlePanGesture(_ gestureRecognizer: UIPanGestureRecognizer) {
         guard let view = gestureRecognizer.view, let superView = gestureRecognizer.view?.superview else { return }
         let isLeftGesture = view == leftHandleView
+        let isRightGesture = view == rightHandleView
+        
         switch gestureRecognizer.state {
         case .began:
             if isLeftGesture {
                 currentLeftConstraint = leftConstraint!.constant
-            } else {
+            } else if isRightGesture {
                 currentRightConstraint = rightConstraint!.constant
+            } else {
+                if isShowTimeLabel {
+                    timeLabelView.isHidden = false
+                }
+                
+                currentPositionConstraint = positionConstraint!.constant
             }
             updateSelectedTime(stoppedMoving: false)
 
@@ -288,21 +491,31 @@ public protocol TrimmerViewDelegate: AnyObject {
             let translation = gestureRecognizer.translation(in: superView)
             if isLeftGesture {
                 updateLeftConstraint(with: translation)
-            } else {
+            } else if isRightGesture {
                 updateRightConstraint(with: translation)
+            } else {
+                updatePositionConstraint(with: translation)
             }
             layoutIfNeeded()
             if let startTime = startTime, isLeftGesture {
                 tmpStartTime = startTime
                 seek(to: startTime)
-            } else if let endTime = endTime {
+            } else if let endTime = endTime, isRightGesture {
                 tmpEndTime = endTime
                 seek(to: endTime)
+            } else if let currentPlayTime = currentPlayTime {
+                tmpCurrentTime = currentPlayTime
+                timeLabelView.setTime(currentPlayTime)
             }
             updateSelectedTime(stoppedMoving: false)
 
         case .cancelled, .ended, .failed:
-            updateSelectedTime(stoppedMoving: true)
+            if isLeftGesture || isRightGesture {
+                updateSelectedTime(stoppedMoving: true)
+            } else {
+                timeLabelView.isHidden = true
+            }
+            
         default: break
         }
     }
@@ -317,6 +530,16 @@ public protocol TrimmerViewDelegate: AnyObject {
         let maxConstraint = min(2 * handleWidth - frame.width + leftHandleView.frame.origin.x + minimumDistanceBetweenHandle, 0)
         let newConstraint = max(min(0, currentRightConstraint + translation.x), maxConstraint)
         rightConstraint?.constant = newConstraint
+    }
+    
+    private func updatePositionConstraint(with translation: CGPoint) {
+        let maxConstraint = assetPreview.frame.size.width - assetPreviewBorderWidth
+        let newConstraint = min(max(0, currentPositionConstraint + translation.x), maxConstraint)
+        
+        print("maxConstraint: \(maxConstraint)")
+        print("newConstraint: \(newConstraint)")
+        positionConstraint?.constant = newConstraint
+        timeLabelConstraint?.constant = newConstraint - timeLabelConstant()
     }
 
     // MARK: - Asset loading
@@ -344,6 +567,7 @@ public protocol TrimmerViewDelegate: AnyObject {
                 - positionBar.frame.width
             let normalizedPosition = min(max(0, offsetPosition), maxPosition)
             positionConstraint?.constant = normalizedPosition
+            timeLabelConstraint?.constant = normalizedPosition - timeLabelConstant()
             layoutIfNeeded()
         }
     }
@@ -372,6 +596,18 @@ public protocol TrimmerViewDelegate: AnyObject {
         currentRightConstraint = 0
         let maxConstraint = 2 * handleWidth - frame.width
         updateRightConstraint(with: CGPoint(x: positionX + maxConstraint, y: 0))
+        layoutIfNeeded()
+    }
+    
+    public var currentPlayTime: CMTime? {
+        let playPosition = positionBar.frame.origin.x + assetPreview.contentOffset.x
+        return getTime(from: playPosition)
+    }
+    
+    public func setCurrentPlayTime(_ currentPlayTime: CMTime) {
+        guard let positionX = getPosition(from: currentPlayTime) else { return }
+        currentPositionConstraint = 0
+        updatePositionConstraint(with: CGPoint(x: positionX, y: 0))
         layoutIfNeeded()
     }
 
@@ -409,5 +645,95 @@ public protocol TrimmerViewDelegate: AnyObject {
     }
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateSelectedTime(stoppedMoving: false)
+    }
+}
+
+class TimeLabelView: UIView {
+    
+    let timeLabelContainerView = UIView()
+    let timeLabel = UILabel()
+    let downTriangleView = UIView()
+    var constDownTriangleViewCenterX: NSLayoutConstraint?
+    
+    convenience init() {
+        self.init(frame: .zero)
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupSubviews()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        setupSubviews()
+    }
+
+    private func setTimeLabel() {
+        timeLabelContainerView.backgroundColor = UIColor.white.withAlphaComponent(0.8)
+        timeLabelContainerView.layer.cornerRadius = 4.0
+        timeLabelContainerView.translatesAutoresizingMaskIntoConstraints = false
+        timeLabelContainerView.isUserInteractionEnabled = false
+        
+        addSubview(timeLabelContainerView)
+        timeLabelContainerView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        timeLabelContainerView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+        timeLabelContainerView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+        timeLabelContainerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8.0).isActive = true
+        
+        timeLabel.backgroundColor = .clear
+        timeLabel.adjustsFontSizeToFitWidth = true
+        timeLabel.minimumScaleFactor = 0.5
+        timeLabel.textColor = UIColor(red: (32.0 / 255.0), green: (32.0 / 255.0), blue: (32.0 / 255.0), alpha: 1.0)
+        timeLabel.font = UIFont.boldSystemFont(ofSize: 12)
+        timeLabel.text = "00:00:00"
+        timeLabel.translatesAutoresizingMaskIntoConstraints = false
+        timeLabel.isUserInteractionEnabled = false
+
+        timeLabelContainerView.addSubview(timeLabel)
+        timeLabel.leftAnchor.constraint(equalTo: timeLabelContainerView.leftAnchor, constant: 4).isActive = true
+        timeLabel.rightAnchor.constraint(equalTo: timeLabelContainerView.rightAnchor, constant: -4).isActive = true
+        timeLabel.topAnchor.constraint(equalTo: timeLabelContainerView.topAnchor, constant: 1).isActive = true
+        timeLabel.bottomAnchor.constraint(equalTo: timeLabelContainerView.bottomAnchor, constant: -1).isActive = true
+    }
+    
+    private func setDownTriangle() {
+        let width: CGFloat = 8.0
+        let height: CGFloat = 6.0
+        let path = CGMutablePath()
+
+        path.move(to: CGPoint(x: 0, y: 0))
+        path.addLine(to: CGPoint(x:width/2, y: width/2))
+        path.addLine(to: CGPoint(x:height, y:0))
+        path.addLine(to: CGPoint(x:0, y:0))
+
+        let shape = CAShapeLayer()
+        shape.path = path
+        shape.fillColor = UIColor.white.withAlphaComponent(0.8).cgColor
+        downTriangleView.frame = CGRect(origin: .zero, size: .init(width: width, height: height))
+        downTriangleView.layer.insertSublayer(shape, at: 0)
+        downTriangleView.translatesAutoresizingMaskIntoConstraints = false
+        downTriangleView.isUserInteractionEnabled = false
+        
+        addSubview(downTriangleView)
+        downTriangleView.widthAnchor.constraint(equalToConstant: width).isActive = true
+        downTriangleView.heightAnchor.constraint(equalToConstant: height).isActive = true
+        downTriangleView.topAnchor.constraint(equalTo: timeLabelContainerView.bottomAnchor, constant: 0).isActive = true
+        constDownTriangleViewCenterX = downTriangleView.centerXAnchor.constraint(equalTo: centerXAnchor)
+        constDownTriangleViewCenterX?.isActive = true
+    }
+    
+    private func setupSubviews() {
+        backgroundColor = .clear
+        setTimeLabel()
+        setDownTriangle()
+    }
+    
+    func setTime(_ time: CMTime) {
+        let secs = Int(time.seconds)
+        let hours = secs / 3600
+        let minutes = (secs % 3600) / 60
+        let seconds = (secs % 3600) % 60
+        timeLabel.text = String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
     }
 }
