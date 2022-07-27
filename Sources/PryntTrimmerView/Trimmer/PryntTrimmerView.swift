@@ -86,17 +86,17 @@ public protocol TrimmerViewDelegate: AnyObject {
     
     // MARK: View Customization
     
-    var customLeftHandleView: UIView? {
+    public var customLeftHandleView: UIView? {
         didSet {
             setupLeftHandleView()
         }
     }
-    var customRightHandleView: UIView? {
+    public var customRightHandleView: UIView? {
         didSet {
             setupRightHandleView()
         }
     }
-    var customPositionBar: UIView? {
+    public var customPositionBar: UIView? {
         didSet {
             setupPositionBar()
         }
