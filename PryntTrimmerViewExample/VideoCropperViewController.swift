@@ -21,7 +21,8 @@ class VideoCropperViewController: AssetSelectionViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         loadLibrary()
-        videoCropView.setAspectRatio(CGSize(width: 3, height: 2), animated: false)
+        videoCropView.maskBackgroundColor = .black.withAlphaComponent(0.7)
+        videoCropView.setAspectRatio(CGSize(width: 1, height: 1), animated: false)
     }
 
     @IBAction func selectAsset(_ sender: Any) {

@@ -32,14 +32,15 @@ class CropMaskView: UIView {
         maskLayer.fillColor = UIColor.black.cgColor
         maskLayer.opacity = 1.0
         
-        frameLayer.strokeColor = UIColor.white.cgColor
+        frameLayer.strokeColor = UIColor.white.withAlphaComponent(0.5).cgColor
         frameLayer.fillColor = UIColor.clear.cgColor
         
         frameView.layer.addSublayer(frameLayer)
         cropBoxView.layer.mask = maskLayer
         
         cropBoxView.translatesAutoresizingMaskIntoConstraints = false
-        cropBoxView.backgroundColor = UIColor.white.withAlphaComponent(0.7)
+        cropBoxView.backgroundColor = UIColor.white
+        
         addSubview(cropBoxView)
         addSubview(frameView)
         
@@ -57,9 +58,13 @@ class CropMaskView: UIView {
         path.append(framePath)
         path.usesEvenOddFillRule = true
         maskLayer.path = path.cgPath
-        
+
         framePath.lineWidth = lineWidth
         frameLayer.path = framePath.cgPath
+        
+        for gridView in subviews where gridView is GridView {
+            gridView.removeFromSuperview()
+        }
         
         let gridView = GridView(frame: cropFrame)
         gridView.backgroundColor = .clear
@@ -113,7 +118,8 @@ class CropMaskView: UIView {
 }
 
 class GridView: UIView {
-    var rect: CGRect = .init()
+    private var rect: CGRect = .init()
+    
     private var oneEdgeLength: CGFloat {
         rect.maxX / 18
     }
@@ -203,7 +209,7 @@ class GridView: UIView {
         path.addLine(to: CGPoint(x: rect.maxX, y: getSecondPoint(rect.maxY)))
         path.close()
         
-        UIColor.white.setStroke()
+        UIColor.white.withAlphaComponent(0.5).setStroke()
         path.lineWidth = 1
         path.stroke()
     }
