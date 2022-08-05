@@ -84,6 +84,8 @@ public protocol TrimmerViewDelegate: AnyObject {
         }
     }
     
+    public var isMoveTrimmerViewItem: Bool = false
+    
     // MARK: View Customization
     
     public var customLeftHandleView: UIView? {
@@ -475,6 +477,7 @@ public protocol TrimmerViewDelegate: AnyObject {
         
         switch gestureRecognizer.state {
         case .began:
+            isMoveTrimmerViewItem = true
             if isLeftGesture {
                 currentLeftConstraint = leftConstraint!.constant
             } else if isRightGesture {
@@ -489,6 +492,7 @@ public protocol TrimmerViewDelegate: AnyObject {
             updateSelectedTime(stoppedMoving: false)
 
         case .changed:
+            isMoveTrimmerViewItem = true
             let translation = gestureRecognizer.translation(in: superView)
             if isLeftGesture {
                 updateLeftConstraint(with: translation)
@@ -511,6 +515,7 @@ public protocol TrimmerViewDelegate: AnyObject {
             updateSelectedTime(stoppedMoving: isPositionBarGesture)
 
         case .cancelled, .ended, .failed:
+            isMoveTrimmerViewItem = false
             updateSelectedTime(stoppedMoving: true)
             if isPositionBarGesture {
                 timeLabelView.isHidden = true
@@ -578,6 +583,7 @@ public protocol TrimmerViewDelegate: AnyObject {
     }
     
     public func setStartTime(_ startTime: CMTime) {
+        guard !isMoveTrimmerViewItem else { return }
         guard let positionX = getPosition(from: startTime) else { return }
         currentLeftConstraint = 0
         updateLeftConstraint(with: CGPoint(x: positionX, y: 0))
@@ -591,6 +597,7 @@ public protocol TrimmerViewDelegate: AnyObject {
     }
     
     public func setEndTime(_ endTime: CMTime) {
+        guard !isMoveTrimmerViewItem else { return }
         guard let positionX = getPosition(from: endTime) else { return }
         currentRightConstraint = 0
         let maxConstraint = 2 * handleWidth - frame.width
