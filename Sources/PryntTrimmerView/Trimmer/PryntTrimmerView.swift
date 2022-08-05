@@ -273,9 +273,12 @@ public protocol TrimmerViewDelegate: AnyObject {
         }
         
         if isLandscape != orientation.isLandscape {
-            regenerateThumbnails()
-            setStartTime(tmpStartTime)
-            setEndTime(tmpEndTime)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                guard let self = self else { return }
+                self.regenerateThumbnails()
+                self.setStartTime(self.tmpStartTime)
+                self.setEndTime(self.tmpEndTime)
+            }
         }
         
         isLandscape = orientation.isLandscape
