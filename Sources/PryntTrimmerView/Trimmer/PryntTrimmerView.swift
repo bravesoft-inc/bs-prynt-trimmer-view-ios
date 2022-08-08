@@ -273,12 +273,7 @@ public protocol TrimmerViewDelegate: AnyObject {
         }
         
         if isLandscape != orientation.isLandscape {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-                guard let self = self else { return }
-                self.regenerateThumbnails()
-                self.setStartTime(self.tmpStartTime)
-                self.setEndTime(self.tmpEndTime)
-            }
+            self.regenerateThumbnails()
         }
         
         isLandscape = orientation.isLandscape
@@ -387,7 +382,7 @@ public protocol TrimmerViewDelegate: AnyObject {
         leftMaskView.removeFromSuperview()
         leftMaskView.removeAllConstraints()
         leftMaskView.isUserInteractionEnabled = false
-        leftMaskView.backgroundColor = .black
+        leftMaskView.backgroundColor = .white
         leftMaskView.alpha = 0.6
         leftMaskView.translatesAutoresizingMaskIntoConstraints = false
         insertSubview(leftMaskView, belowSubview: leftHandleView)
