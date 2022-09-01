@@ -86,6 +86,12 @@ public protocol TrimmerViewDelegate: AnyObject {
     
     public var isMoveTrimmerViewItem: Bool = false
     
+    public var fps: CGFloat = 0 {
+        didSet {
+            timeLabelView.fps = fps
+        }
+    }
+    
     // MARK: View Customization
     
     public var customLeftHandleView: UIView? {
@@ -656,6 +662,7 @@ class TimeLabelView: UIView {
     let timeLabel = UILabel()
     let downTriangleView = UIView()
     var constDownTriangleViewCenterX: NSLayoutConstraint?
+    var fps: CGFloat = 0
     
     convenience init() {
         self.init(frame: .zero)
@@ -688,7 +695,8 @@ class TimeLabelView: UIView {
         timeLabel.minimumScaleFactor = 0.5
         timeLabel.textColor = UIColor(red: (32.0 / 255.0), green: (32.0 / 255.0), blue: (32.0 / 255.0), alpha: 1.0)
         timeLabel.font = UIFont.boldSystemFont(ofSize: 12)
-        timeLabel.text = "00:00:00"
+        // timeLabel.text = "00:00:00"
+        timeLabel.text = "0000000f"
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.isUserInteractionEnabled = false
 
@@ -732,10 +740,15 @@ class TimeLabelView: UIView {
     }
     
     func setTime(_ time: CMTime) {
-        let secs = Int(time.seconds)
-        let hours = secs / 3600
-        let minutes = (secs % 3600) / 60
-        let seconds = (secs % 3600) % 60
-        timeLabel.text = String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
+//        let secs = Int(time.seconds)
+//        let hours = secs / 3600
+//        let minutes = (secs % 3600) / 60
+//        let seconds = (secs % 3600) % 60
+//        timeLabel.text = String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
+        
+//        time.seconds * fps
+//
+        let frameByFrame = Int(time.seconds * self.fps)
+        timeLabel.text = String(format: "%07df", frameByFrame)
     }
 }

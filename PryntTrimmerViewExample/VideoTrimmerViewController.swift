@@ -31,8 +31,8 @@ class VideoTrimmerViewController: AssetSelectionViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        defaultTrimmerView()
-//        noTrimmerView()
+//        defaultTrimmerView()
+        noTrimmerView()
     }
     
     private func defaultTrimmerView() {
@@ -68,6 +68,7 @@ class VideoTrimmerViewController: AssetSelectionViewController {
         
         // タイムラベル（ポジションバーの上部に表示される）の設定
         trimmerView.isShowTimeLabel = true
+        trimmerView.fps = 120
     }
     
     deinit {
