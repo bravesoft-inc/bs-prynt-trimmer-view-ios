@@ -59,6 +59,7 @@ class VideoTrimmerViewController: AssetSelectionViewController {
         trimmerView.assetPreviewMargin = 10.0
         trimmerView.assetPreviewBorderWidth = 4.0
         trimmerView.assetPreviewCornerRadius = 4.0
+        trimmerView.isHiddenAssetPreviewThumbnailImage = true
         
         //ポジションバーの設定
         trimmerView.positionBarColor = .clear

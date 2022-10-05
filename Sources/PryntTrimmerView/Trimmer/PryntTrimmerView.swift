@@ -66,6 +66,12 @@ public protocol TrimmerViewDelegate: AnyObject {
         }
     }
     
+    @IBInspectable public var isHiddenAssetPreviewThumbnailImage: Bool = false {
+        didSet {
+            resetAssetPreviews()
+        }
+    }
+    
     @IBInspectable public var assetPreviewMargin: CGFloat = 0 {
         didSet {
             resetAssetPreviews()
@@ -228,6 +234,8 @@ public protocol TrimmerViewDelegate: AnyObject {
         constrainAssetPreview()
         setupAssetPreviewBorderWidth()
         setupAssetPreviewCornerRadius()
+        
+        assetPreview.contentView.isHidden = isHiddenAssetPreviewThumbnailImage
         regenerateThumbnails()
     }
     
