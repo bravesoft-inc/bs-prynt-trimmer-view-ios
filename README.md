@@ -3,7 +3,7 @@
 <img src="https://img.shields.io/badge/platform-iOS14-lightgrey.svg" />
 
 以下のライブラリを改良した動画クロっピングライブラリです。
-[PryntTrimmerView](https://github.com/HHK1/PryntTrimmerView)
+### [PryntTrimmerView](https://github.com/HHK1/PryntTrimmerView)
 
 ## 注意事項
 このライブラリはBeta版になります。
